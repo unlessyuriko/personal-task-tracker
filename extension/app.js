@@ -666,6 +666,10 @@ function initSettings() {
   const saveNameBtn = document.getElementById('settings-name-save');
   const nameInput = document.getElementById('settings-name');
   const nameFeedback = document.getElementById('name-feedback');
+  const exportBtn = document.getElementById('data-export-btn');
+  const importBtn = document.getElementById('data-import-btn');
+  const importInput = document.getElementById('data-import-file');
+  const backupFeedback = document.getElementById('backup-feedback');
 
   // Open modal (P3-11)
   settingsBtn.addEventListener('click', () => openModal());
@@ -689,6 +693,16 @@ function initSettings() {
     if (e.key === 'Enter') saveName();
   });
 
+  exportBtn?.addEventListener('click', exportBackupData);
+  importBtn?.addEventListener('click', () => importInput?.click());
+  importInput?.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      importBackupData(file);
+      e.target.value = '';
+    }
+  });
+
   function openModal() {
     // Pre-populate name field (P3-7)
     chrome.storage.local.get(['displayName'], async (result) => {
@@ -699,6 +713,7 @@ function initSettings() {
       }
     });
     if (nameFeedback) nameFeedback.classList.add('hidden');
+    if (backupFeedback) backupFeedback.classList.add('hidden');
     modal.classList.remove('hidden');
     nameInput.focus();
   }
@@ -724,6 +739,101 @@ function initSettings() {
         setTimeout(() => nameFeedback.classList.add('hidden'), 2000);
       }
     });
+  }
+
+  function showSettingsFeedback(message) {
+    if (!backupFeedback) return;
+    backupFeedback.textContent = message;
+    backupFeedback.classList.remove('hidden');
+    clearTimeout(backupFeedback._hideTimer);
+    backupFeedback._hideTimer = setTimeout(() => backupFeedback.classList.add('hidden'), 2500);
+  }
+
+  function exportBackupData() {
+    chrome.storage.local.get(['displayName', 'wallpaper', 'tasks', 'shortcuts'], (result) => {
+      const backup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        displayName: result.displayName || '',
+        wallpaper: result.wallpaper || null,
+        tasks: Array.isArray(result.tasks) ? result.tasks : [],
+        shortcuts: Array.isArray(result.shortcuts) ? result.shortcuts : []
+      };
+
+      const json = JSON.stringify(backup, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `personal-focus-board-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showSettingsFeedback('✓ Backup exported');
+    });
+  }
+
+  function importBackupData(file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        const backup = parsed && typeof parsed === 'object' ? parsed : null;
+        if (!backup) throw new Error('Invalid backup file');
+
+        const payload = {};
+        const nestedData = backup.data && typeof backup.data === 'object' ? backup.data : null;
+        const source = nestedData || backup;
+
+        if (typeof source.displayName === 'string') payload.displayName = source.displayName;
+        if (typeof source.wallpaper === 'string') payload.wallpaper = source.wallpaper;
+        if (Array.isArray(source.tasks)) payload.tasks = source.tasks;
+        if (Array.isArray(source.shortcuts)) payload.shortcuts = source.shortcuts;
+
+        if (Object.keys(payload).length === 0) {
+          throw new Error('No supported backup data found');
+        }
+
+        chrome.storage.local.set(payload, () => {
+          if (payload.displayName !== undefined) {
+            const greetingEl = document.getElementById('greeting');
+            if (greetingEl) {
+              greetingEl.textContent = `${getGreeting()}, ${payload.displayName}`;
+            }
+          }
+
+          if (payload.wallpaper !== undefined) {
+            if (payload.wallpaper) {
+              applyWallpaper(payload.wallpaper);
+            } else {
+              document.body.style.backgroundImage = "url('assets/default-wallpaper.jpg')";
+            }
+          }
+
+          if (Array.isArray(payload.tasks)) {
+            tasks = payload.tasks;
+            sortTasksByPriority();
+            renderTasks();
+          }
+
+          if (Array.isArray(payload.shortcuts)) {
+            shortcuts = payload.shortcuts;
+            renderShortcuts();
+          }
+
+          showSettingsFeedback('✓ Backup imported');
+        });
+      } catch (error) {
+        showSettingsFeedback('✕ Invalid backup file');
+      }
+    };
+
+    reader.onerror = () => {
+      showSettingsFeedback('✕ Could not read backup file');
+    };
+
+    reader.readAsText(file);
   }
 }
 

@@ -1067,6 +1067,28 @@ body {
   transition: opacity var(--transition-normal);
 }
 
+/* Backup actions */
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.data-btn {
+  min-width: 110px;
+  justify-content: center;
+}
+
+.data-import-btn {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.data-file-input {
+  display: none;
+}
+
 /* Wallpaper upload area */
 .wallpaper-upload-area {
   position: relative;

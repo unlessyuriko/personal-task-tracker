@@ -84,6 +84,20 @@
           </div>
           <p class="settings-feedback hidden" id="wallpaper-feedback">✓ Wallpaper updated!</p>
         </div>
+
+        <div class="settings-divider"></div>
+
+        <!-- Backup / Restore -->
+        <div class="settings-group">
+          <label class="settings-label" for="data-export-btn">Backup & Restore</label>
+          <p class="settings-hint">Export your data as a JSON file and import it later to restore your tasks, shortcuts, wallpaper, and display name.</p>
+          <div class="data-actions">
+            <button id="data-export-btn" class="settings-save-btn data-btn" type="button">Export data</button>
+            <button id="data-import-btn" class="settings-save-btn data-btn data-import-btn" type="button">Import data</button>
+            <input type="file" id="data-import-file" class="data-file-input" accept="application/json,.json" aria-label="Import backup file">
+          </div>
+          <p class="settings-feedback hidden" id="backup-feedback">✓ Backup ready</p>
+        </div>
       </div>
     </div>
   </div>
