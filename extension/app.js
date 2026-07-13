@@ -3,6 +3,7 @@
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   initGreeting();
   initClock();
   initFocus();
@@ -11,6 +12,30 @@ document.addEventListener('DOMContentLoaded', () => {
   initWallpaper();
   initShortcuts();
 });
+
+/* ============================================
+   Theme
+   ============================================ */
+
+/**
+ * Applies the given theme ('futuristic' | 'classic') to the document.
+ */
+function applyTheme(theme) {
+  if (theme === 'classic') {
+    document.documentElement.setAttribute('data-theme', 'classic');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+}
+
+/**
+ * Loads the saved theme from storage (defaults to 'futuristic') and applies it.
+ */
+function initTheme() {
+  chrome.storage.local.get(['theme'], (result) => {
+    applyTheme(result.theme || 'futuristic');
+  });
+}
 
 /* ============================================
    Greeting (P1-6, P1-7)
@@ -84,17 +109,18 @@ async function initGreeting() {
    ============================================ */
 
 /**
- * Updates the clock element with current time in HH:MM:SS (24-hour)
+ * Updates the clock element with current time in hh:mm:ss AM/PM (12-hour)
  * and sets the current date display.
  */
 function updateClock() {
   const clockEl = document.getElementById('clock');
   const dateEl = document.getElementById('current-date');
   const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
+  const period = now.getHours() >= 12 ? 'PM' : 'AM';
+  const hours = String(now.getHours() % 12 || 12).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
-  clockEl.textContent = `${hours}:${minutes}:${seconds}`;
+  clockEl.textContent = `${hours}:${minutes}:${seconds} ${period}`;
 
   // Update date (only needs to change once per day, but cheap to set each tick)
   if (dateEl) {
@@ -179,11 +205,78 @@ function saveTasks(taskList) {
 /** Priority weight map — lower = higher priority. */
 const PRIORITY_WEIGHT = { high: 0, medium: 1, low: 2 };
 
+/** Calendar icon — marks a pill as showing the task's target date. */
+const ICON_CALENDAR = '<svg class="pill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" ' +
+  'stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>' +
+  '<line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+
+/** Clock icon — marks a pill as showing elapsed time since creation. */
+const ICON_CLOCK = '<svg class="pill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" ' +
+  'stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
 /**
- * Sorts the tasks array in-place by priority (high → medium → low).
+ * Formats a Date as dd/mm/yyyy.
+ */
+function formatDateDDMMYYYY(date) {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+/**
+ * Returns the number of calendar days between today and the given
+ * 'YYYY-MM-DD' due date (negative when the date is in the past).
+ */
+function getDaysRemaining(dueDateStr) {
+  const due = new Date(`${dueDateStr}T00:00:00`);
+  const today = new Date(new Date().toDateString());
+  return Math.round((due - today) / 86400000);
+}
+
+/**
+ * Formats a "days remaining" count into a short human-readable label.
+ */
+function formatDaysRemaining(diffDays) {
+  if (diffDays === 0) return 'Due today';
+  if (diffDays === 1) return 'Due tomorrow';
+  if (diffDays > 1) return `${diffDays}d left`;
+  if (diffDays === -1) return '1d overdue';
+  return `${Math.abs(diffDays)}d overdue`;
+}
+
+/**
+ * Derives a priority level from days remaining until a due date —
+ * the closer the date, the higher the priority.
+ */
+function priorityFromDaysRemaining(diffDays) {
+  if (diffDays <= 1) return 'high';
+  if (diffDays <= 3) return 'medium';
+  return 'low';
+}
+
+/**
+ * Recomputes priority for incomplete tasks that have a target date, based
+ * on how many days remain until that date (closer date → higher priority).
+ * Tasks without a due date, or whose priority was explicitly set by the
+ * user (task.manualPriority), are left untouched.
+ */
+function syncPriorityFromDueDates() {
+  tasks.forEach((task) => {
+    if (task.completed || !task.dueDate || task.manualPriority) return;
+    task.priority = priorityFromDaysRemaining(getDaysRemaining(task.dueDate));
+  });
+}
+
+/**
+ * Sorts the tasks array in-place by priority (high → medium → low), first
+ * refreshing due-date-driven priorities so the sort reflects current urgency.
  * Within the same priority, original order is preserved (stable sort).
  */
 function sortTasksByPriority() {
+  syncPriorityFromDueDates();
   tasks.sort((a, b) => {
     // Completed tasks always go to the bottom
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -195,11 +288,12 @@ function sortTasksByPriority() {
 }
 
 /**
- * Adds a new task with the given priority.
+ * Adds a new task with the given priority and optional target date.
  * @param {string} text - Task description (will be trimmed).
  * @param {string} priority - 'high', 'medium', or 'low'.
+ * @param {string} [dueDate] - Target date as 'YYYY-MM-DD', or empty for none.
  */
-function addTask(text, priority = 'medium') {
+function addTask(text, priority = 'medium', dueDate = '') {
   const trimmed = text.trim();
   if (!trimmed) return;
 
@@ -208,6 +302,7 @@ function addTask(text, priority = 'medium') {
     text: trimmed,
     completed: false,
     priority: priority,
+    dueDate: dueDate || null,
     createdAt: Date.now()
   };
 
@@ -263,8 +358,11 @@ function formatDuration(ms) {
 }
 
 /**
- * Enters inline-edit mode for a task.
- * Allows editing the text and priority while preserving createdAt.
+ * Enters inline-edit mode for a task's text and target date.
+ * Priority stays visible as the same clickable badge used in normal view
+ * (click it anytime to change priority — no need to enter edit mode), and
+ * the duration pill stays visible too, so editing looks like the same task
+ * row with just the text and date becoming editable.
  */
 function editTask(taskId) {
   const task = tasks.find((t) => t.id === taskId);
@@ -278,7 +376,7 @@ function editTask(taskId) {
 
   // Replace text span with input
   const textSpan = li.querySelector('.task-text');
-  const durationSpan = li.querySelector('.task-duration');
+  const dueSpan = li.querySelector('.task-due');
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -286,23 +384,19 @@ function editTask(taskId) {
   input.value = task.text;
   input.setAttribute('aria-label', 'Edit task text');
 
-  // Replace priority badge with a select
-  const badge = li.querySelector('.priority-badge');
-  const select = document.createElement('select');
-  select.className = 'edit-priority-select';
-  select.innerHTML = `
-    <option value="high"${task.priority === 'high' ? ' selected' : ''}>High</option>
-    <option value="medium"${(task.priority || 'medium') === 'medium' ? ' selected' : ''}>Medium</option>
-    <option value="low"${task.priority === 'low' ? ' selected' : ''}>Low</option>
-  `;
+  // Target date input (replaces the due-date pill while editing)
+  const dateInput = document.createElement('input');
+  dateInput.type = 'date';
+  dateInput.className = 'edit-date-input';
+  dateInput.value = task.dueDate || '';
+  dateInput.setAttribute('aria-label', 'Edit target date');
 
   // Disable drag on this item so text selection works in the edit input
   li.setAttribute('draggable', 'false');
 
-  // Hide original elements
+  // Hide only the elements being replaced by inputs
   if (textSpan) textSpan.style.display = 'none';
-  if (durationSpan) durationSpan.style.display = 'none';
-  if (badge) badge.style.display = 'none';
+  if (dueSpan) dueSpan.style.display = 'none';
 
   // Hide edit & delete buttons during edit
   const editBtn = li.querySelector('.task-edit-btn');
@@ -311,8 +405,8 @@ function editTask(taskId) {
   if (deleteBtn) deleteBtn.style.display = 'none';
 
   // Insert editing elements
-  li.insertBefore(select, textSpan);
   li.insertBefore(input, textSpan);
+  li.insertBefore(dateInput, textSpan);
 
   // Add save/cancel buttons
   const saveBtn = document.createElement('button');
@@ -335,7 +429,7 @@ function editTask(taskId) {
     const newText = input.value.trim();
     if (newText) {
       task.text = newText;
-      task.priority = select.value;
+      task.dueDate = dateInput.value || null;
       sortTasksByPriority();
       saveTasks(tasks);
     }
@@ -352,6 +446,105 @@ function editTask(taskId) {
     if (e.key === 'Enter') commitEdit();
     if (e.key === 'Escape') cancelEdit();
   });
+}
+
+/* ============================================
+   Priority Quick-Edit Popup
+   ============================================ */
+
+/** The currently open priority popup element, if any. */
+let activePriorityPopup = null;
+
+/**
+ * Builds and shows a small custom popup with High/Medium/Low options
+ * anchored to the given element. This is a fully custom HTML/CSS popup
+ * (not a native <select>), so it can be styled like the rest of the app
+ * and always matches the current theme.
+ * @param {HTMLElement} anchorEl - Element to anchor the popup below.
+ * @param {string} currentValue - Currently selected priority level.
+ * @param {(value: string) => void} onSelect - Called with the chosen level.
+ */
+function createPriorityPopup(anchorEl, currentValue, onSelect) {
+  closePriorityPopup();
+
+  const rect = anchorEl.getBoundingClientRect();
+
+  const popup = document.createElement('div');
+  popup.className = 'priority-popup';
+  popup.style.top = `${rect.bottom + 6}px`;
+  popup.style.left = `${Math.max(8, rect.left - 20)}px`;
+
+  const levels = [
+    { value: 'high', label: 'High' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'low', label: 'Low' }
+  ];
+  popup.innerHTML = levels.map(({ value, label }) =>
+    `<button type="button" class="priority-option priority-option--${value}${value === currentValue ? ' active' : ''}" data-priority="${value}">${label}</button>`
+  ).join('');
+
+  document.body.appendChild(popup);
+  activePriorityPopup = popup;
+
+  popup.querySelectorAll('.priority-option').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      onSelect(btn.dataset.priority);
+      closePriorityPopup();
+    });
+  });
+
+  setTimeout(() => {
+    document.addEventListener('mousedown', handlePriorityOutsideClick);
+    document.addEventListener('keydown', handlePriorityEscape);
+  }, 0);
+}
+
+/**
+ * Shows the priority popup for an existing task, anchored to its priority
+ * badge, letting the user change priority directly with one click.
+ * @param {string} taskId - Task ID.
+ * @param {HTMLElement} anchorEl - The priority badge that was clicked.
+ */
+function showPriorityPopup(taskId, anchorEl) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task) return;
+
+  createPriorityPopup(anchorEl, task.priority || 'medium', (value) => {
+    task.priority = value;
+    // Mark as a deliberate manual choice so due-date auto-sync won't override it.
+    task.manualPriority = true;
+    sortTasksByPriority();
+    saveTasks(tasks);
+    renderTasks();
+  });
+}
+
+/**
+ * Closes the active priority popup, if any.
+ */
+function closePriorityPopup() {
+  if (activePriorityPopup) {
+    activePriorityPopup.remove();
+    activePriorityPopup = null;
+  }
+  document.removeEventListener('mousedown', handlePriorityOutsideClick);
+  document.removeEventListener('keydown', handlePriorityEscape);
+}
+
+/**
+ * Closes the priority popup when clicking outside of it.
+ */
+function handlePriorityOutsideClick(e) {
+  if (activePriorityPopup && !activePriorityPopup.contains(e.target)) {
+    closePriorityPopup();
+  }
+}
+
+/**
+ * Closes the priority popup on Escape.
+ */
+function handlePriorityEscape(e) {
+  if (e.key === 'Escape') closePriorityPopup();
 }
 
 /**
@@ -419,12 +612,25 @@ function renderTasks() {
     handle.innerHTML = '&#8942;&#8942;';
     handle.setAttribute('aria-hidden', 'true');
 
-    // Priority badge
+    // Priority badge — click to change directly
     const priority = task.priority || 'medium';
     const badge = document.createElement('span');
     badge.className = `priority-badge priority-${priority}`;
     badge.textContent = priority.charAt(0).toUpperCase();
-    badge.title = priority.charAt(0).toUpperCase() + priority.slice(1) + ' priority';
+    badge.title = priority.charAt(0).toUpperCase() + priority.slice(1) + ' priority — click to change';
+    badge.setAttribute('role', 'button');
+    badge.setAttribute('tabindex', '0');
+    badge.setAttribute('aria-label', `Change priority (currently ${priority})`);
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showPriorityPopup(task.id, badge);
+    });
+    badge.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        showPriorityPopup(task.id, badge);
+      }
+    });
 
     // Checkbox
     const checkbox = document.createElement('input');
@@ -444,7 +650,24 @@ function renderTasks() {
     durationSpan.className = 'task-duration';
     // Use completedAt if task is done so the timer doesn't keep ticking
     const endTime = task.completedAt || Date.now();
-    durationSpan.textContent = `(${formatDuration(endTime - task.createdAt)})`;
+    durationSpan.innerHTML = `${ICON_CLOCK}<span>${formatDuration(endTime - task.createdAt)}</span>`;
+    durationSpan.title = 'Time since created';
+
+    // Target date pill (dd/mm/yyyy + days remaining) — calendar icon makes
+    // it unambiguous this is the target date, not the duration pill above.
+    let dueSpan = null;
+    if (task.dueDate) {
+      dueSpan = document.createElement('span');
+      dueSpan.className = 'task-due';
+      const dueDate = new Date(`${task.dueDate}T00:00:00`);
+      const diffDays = getDaysRemaining(task.dueDate);
+      const isOverdue = !task.completed && diffDays < 0;
+      if (isOverdue) dueSpan.classList.add('task-due--overdue');
+      const daysLabel = task.completed ? 'Completed' : formatDaysRemaining(diffDays);
+      dueSpan.innerHTML = `<span class="task-due-date">${ICON_CALENDAR}${formatDateDDMMYYYY(dueDate)}</span>` +
+        `<span class="task-due-days">${daysLabel}</span>`;
+      dueSpan.title = `Target date: ${formatDateDDMMYYYY(dueDate)}`;
+    }
 
     // Edit button
     const editBtn = document.createElement('button');
@@ -464,6 +687,7 @@ function renderTasks() {
     li.appendChild(badge);
     li.appendChild(checkbox);
     li.appendChild(span);
+    if (dueSpan) li.appendChild(dueSpan);
     li.appendChild(durationSpan);
     li.appendChild(editBtn);
     li.appendChild(deleteBtn);
@@ -511,7 +735,8 @@ async function initTasks() {
   const taskInput = document.getElementById('task-input');
   const addBtn = document.getElementById('task-add-btn');
   const clearBtn = document.getElementById('clear-completed-btn');
-  const prioritySelect = document.getElementById('task-priority');
+  const priorityBtn = document.getElementById('task-priority');
+  const dueDateInput = document.getElementById('task-due-date');
 
   // Load tasks from storage
   tasks = await loadTasks();
@@ -519,23 +744,52 @@ async function initTasks() {
   sortTasksByPriority();
   renderTasks();
 
-  // Refresh durations every 60s
-  setInterval(() => renderTasks(), 60000);
+  // Refresh durations and due-date-driven priorities every 60s
+  setInterval(() => {
+    sortTasksByPriority();
+    saveTasks(tasks);
+    renderTasks();
+  }, 60000);
+
+  // Priority for the task currently being composed (custom popup, not a
+  // native <select>, so it can be styled consistently with the rest of the app).
+  let newTaskPriority = 'medium';
+
+  function setNewTaskPriority(value) {
+    newTaskPriority = value;
+    const label = value.charAt(0).toUpperCase() + value.slice(1);
+    const labelEl = priorityBtn.querySelector('.task-priority-select-label');
+    if (labelEl) labelEl.textContent = label;
+    priorityBtn.setAttribute('aria-label', `Task priority: ${label}`);
+    priorityBtn.classList.remove(
+      'task-priority-select--high',
+      'task-priority-select--medium',
+      'task-priority-select--low'
+    );
+    priorityBtn.classList.add(`task-priority-select--${value}`);
+  }
+  setNewTaskPriority('medium');
+
+  priorityBtn.addEventListener('click', () => {
+    createPriorityPopup(priorityBtn, newTaskPriority, setNewTaskPriority);
+  });
 
   // Add task on button click
   addBtn.addEventListener('click', () => {
-    addTask(taskInput.value, prioritySelect.value);
+    addTask(taskInput.value, newTaskPriority, dueDateInput ? dueDateInput.value : '');
     taskInput.value = '';
-    prioritySelect.value = 'medium'; // reset to default
+    setNewTaskPriority('medium'); // reset to default
+    if (dueDateInput) dueDateInput.value = '';
     taskInput.focus();
   });
 
   // Add task on Enter key
   taskInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      addTask(taskInput.value, prioritySelect.value);
+      addTask(taskInput.value, newTaskPriority, dueDateInput ? dueDateInput.value : '');
       taskInput.value = '';
-      prioritySelect.value = 'medium';
+      setNewTaskPriority('medium');
+      if (dueDateInput) dueDateInput.value = '';
     }
   });
 
@@ -670,6 +924,7 @@ function initSettings() {
   const importBtn = document.getElementById('data-import-btn');
   const importInput = document.getElementById('data-import-file');
   const backupFeedback = document.getElementById('backup-feedback');
+  const themeOptions = Array.from(document.querySelectorAll('.theme-option'));
 
   // Open modal (P3-11)
   settingsBtn.addEventListener('click', () => openModal());
@@ -703,6 +958,24 @@ function initSettings() {
     }
   });
 
+  // Theme toggle
+  themeOptions.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.themeValue;
+      applyTheme(theme);
+      setThemeUI(theme);
+      chrome.storage.local.set({ theme });
+    });
+  });
+
+  function setThemeUI(theme) {
+    themeOptions.forEach((btn) => {
+      const active = btn.dataset.themeValue === theme;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-checked', String(active));
+    });
+  }
+
   function openModal() {
     // Pre-populate name field (P3-7)
     chrome.storage.local.get(['displayName'], async (result) => {
@@ -711,6 +984,9 @@ function initSettings() {
       } else {
         nameInput.value = await getDefaultName();
       }
+    });
+    chrome.storage.local.get(['theme'], (result) => {
+      setThemeUI(result.theme || 'futuristic');
     });
     if (nameFeedback) nameFeedback.classList.add('hidden');
     if (backupFeedback) backupFeedback.classList.add('hidden');
@@ -750,14 +1026,15 @@ function initSettings() {
   }
 
   function exportBackupData() {
-    chrome.storage.local.get(['displayName', 'wallpaper', 'tasks', 'shortcuts'], (result) => {
+    chrome.storage.local.get(['displayName', 'wallpaper', 'tasks', 'shortcuts', 'theme'], (result) => {
       const backup = {
         version: 1,
         exportedAt: new Date().toISOString(),
         displayName: result.displayName || '',
         wallpaper: result.wallpaper || null,
         tasks: Array.isArray(result.tasks) ? result.tasks : [],
-        shortcuts: Array.isArray(result.shortcuts) ? result.shortcuts : []
+        shortcuts: Array.isArray(result.shortcuts) ? result.shortcuts : [],
+        theme: result.theme || 'futuristic'
       };
 
       const json = JSON.stringify(backup, null, 2);
@@ -790,6 +1067,7 @@ function initSettings() {
         if (typeof source.wallpaper === 'string') payload.wallpaper = source.wallpaper;
         if (Array.isArray(source.tasks)) payload.tasks = source.tasks;
         if (Array.isArray(source.shortcuts)) payload.shortcuts = source.shortcuts;
+        if (source.theme === 'classic' || source.theme === 'futuristic') payload.theme = source.theme;
 
         if (Object.keys(payload).length === 0) {
           throw new Error('No supported backup data found');
@@ -820,6 +1098,11 @@ function initSettings() {
           if (Array.isArray(payload.shortcuts)) {
             shortcuts = payload.shortcuts;
             renderShortcuts();
+          }
+
+          if (payload.theme !== undefined) {
+            applyTheme(payload.theme);
+            setThemeUI(payload.theme);
           }
 
           showSettingsFeedback('✓ Backup imported');

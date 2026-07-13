@@ -57,6 +57,18 @@
 
         <div class="settings-divider"></div>
 
+        <!-- Theme -->
+        <div class="settings-group">
+          <label class="settings-label" id="theme-label">Theme</label>
+          <p class="settings-hint">Switch between the Futuristic AI look and the Heineken theme.</p>
+          <div class="theme-toggle" id="theme-toggle" role="radiogroup" aria-labelledby="theme-label">
+            <button type="button" class="theme-option" id="theme-option-futuristic" data-theme-value="futuristic" role="radio" aria-checked="true">Futuristic AI</button>
+            <button type="button" class="theme-option" id="theme-option-classic" data-theme-value="classic" role="radio" aria-checked="false">Heineken</button>
+          </div>
+        </div>
+
+        <div class="settings-divider"></div>
+
         <!-- Wallpaper Upload (P3-8) -->
         <div class="settings-group">
           <label class="settings-label" for="wallpaper-upload">Custom Wallpaper</label>
@@ -107,6 +119,9 @@
 
     <!-- Hero section: shortcuts, greeting, clock, focus -->
     <section class="hero" id="hero">
+      <div class="hero-top">
+        <h2 class="hero-title">Overview</h2>
+      </div>
       <!-- Quick-launch shortcuts -->
       <div class="shortcuts-row" id="shortcuts-row">
         <a class="shortcut-circle" data-index="0" href="#" title="Add shortcut" aria-label="Shortcut 1">
@@ -160,12 +175,29 @@
           spellcheck="false"
           aria-label="New task input"
         >
-        <select id="task-priority" class="task-priority-select" aria-label="Task priority">
-          <option value="high">High</option>
-          <option value="medium" selected>Medium</option>
-          <option value="low">Low</option>
-        </select>
         <button id="task-add-btn" class="task-add-btn" aria-label="Add task">+</button>
+      </div>
+      <div class="task-meta-row">
+        <button
+          type="button"
+          id="task-priority"
+          class="task-priority-select task-priority-select--medium"
+          aria-haspopup="true"
+          aria-label="Task priority: Medium"
+        ><span class="task-priority-select-label">Medium</span></button>
+        <input
+          type="date"
+          id="task-due-date"
+          class="task-date-input"
+          aria-label="Target date"
+          title="Target date"
+        >
+      </div>
+      <div class="task-list-header">
+        <span class="task-list-header-col task-list-header-col--priority">Priority</span>
+        <span class="task-list-header-col task-list-header-col--task">Task</span>
+        <span class="task-list-header-col task-list-header-col--due">Target Date</span>
+        <span class="task-list-header-col task-list-header-col--duration">Duration</span>
       </div>
       <ul class="task-list" id="task-list" role="list" aria-label="Task list">
         <!-- Tasks rendered dynamically by app.js -->
