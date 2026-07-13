@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab — Personal Focus Board</title>
+  <meta name="description" content="A personal productivity dashboard for your new tab page. Stay focused with tasks, a live clock, and daily focus reminders.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Readability overlay above wallpaper -->
+  <div class="overlay"></div>
+
+  <!-- Settings gear button (P3-1) -->
+  <button
+    id="settings-btn"
+    class="settings-btn"
+    aria-label="Open settings"
+    title="Settings"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <!-- Settings Modal (P3-2) -->
+  <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <!-- Backdrop -->
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <!-- Modal content -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="settings-title">Settings</h2>
+        <button class="modal-close-btn" id="modal-close-btn" aria-label="Close settings">&#x2715;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Display Name (P3-5) -->
+        <div class="settings-group">
+          <label class="settings-label" for="settings-name">Display Name</label>
+          <p class="settings-hint">Shown in your greeting message.</p>
+          <div class="settings-input-row">
+            <input
+              type="text"
+              id="settings-name"
+              class="settings-input"
+              placeholder="Enter your name..."
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button id="settings-name-save" class="settings-save-btn" aria-label="Save display name">Save</button>
+          </div>
+          <p class="settings-feedback hidden" id="name-feedback">✓ Name updated!</p>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <!-- Wallpaper Upload (P3-8) -->
+        <div class="settings-group">
+          <label class="settings-label" for="wallpaper-upload">Custom Wallpaper</label>
+          <p class="settings-hint">Upload a JPG or PNG image (recommended 1920×1080).</p>
+          <div class="wallpaper-upload-area" id="wallpaper-upload-area">
+            <input
+              type="file"
+              id="wallpaper-upload"
+              class="wallpaper-file-input"
+              accept="image/jpeg,image/png,image/webp"
+              aria-label="Upload custom wallpaper"
+            >
+            <div class="wallpaper-upload-label" id="wallpaper-upload-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="upload-icon">
+                <polyline points="16 16 12 12 8 16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+              <span id="upload-label-text">Click or drag an image to upload</span>
+            </div>
+          </div>
+          <div class="wallpaper-preview-wrap hidden" id="wallpaper-preview-wrap">
+            <img id="wallpaper-preview" class="wallpaper-preview" src="" alt="Wallpaper preview">
+            <button class="wallpaper-reset-btn" id="wallpaper-reset-btn" aria-label="Reset to default wallpaper">Reset to default</button>
+          </div>
+          <p class="settings-feedback hidden" id="wallpaper-feedback">✓ Wallpaper updated!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content container -->
+  <main class="content">
+
+    <!-- Hero section: shortcuts, greeting, clock, focus -->
+    <section class="hero" id="hero">
+      <!-- Quick-launch shortcuts -->
+      <div class="shortcuts-row" id="shortcuts-row">
+        <a class="shortcut-circle" data-index="0" href="#" title="Add shortcut" aria-label="Shortcut 1">
+          <span class="shortcut-plus">+</span>
+        </a>
+        <a class="shortcut-circle" data-index="1" href="#" title="Add shortcut" aria-label="Shortcut 2">
+          <span class="shortcut-plus">+</span>
+        </a>
+        <a class="shortcut-circle" data-index="2" href="#" title="Add shortcut" aria-label="Shortcut 3">
+          <span class="shortcut-plus">+</span>
+        </a>
+        <a class="shortcut-circle" data-index="3" href="#" title="Add shortcut" aria-label="Shortcut 4">
+          <span class="shortcut-plus">+</span>
+        </a>
+        <a class="shortcut-circle" data-index="4" href="#" title="Add shortcut" aria-label="Shortcut 5">
+          <span class="shortcut-plus">+</span>
+        </a>
+      </div>
+      <h1 class="greeting" id="greeting">Good Morning, May Thu Han</h1>
+      <p class="current-date" id="current-date"></p>
+      <div class="focus-section" id="focus-section">
+        <p class="focus-label" id="focus-label">Main focus right now</p>
+        <p class="focus-display" id="focus-display" aria-live="polite">&mdash;</p>
+      </div>
+      <div class="clock" id="clock">00:00:00</div>
+    </section>
+
+    <section class="task-card" id="task-card">
+      <div class="task-card-top">
+        <h2 class="task-card-header">Tasks</h2>
+        <div class="task-kpi" id="task-kpi">
+          <span class="kpi-item kpi-done">
+            <span id="kpi-done-count">0</span> done
+          </span>
+          <span class="kpi-divider">/</span>
+          <span class="kpi-item kpi-total">
+            <span id="kpi-total-count">0</span> total
+          </span>
+        </div>
+      </div>
+      <div class="task-progress-bar">
+        <div class="task-progress-fill" id="task-progress-fill"></div>
+      </div>
+      <div class="task-input-row">
+        <input
+          type="text"
+          id="task-input"
+          class="task-input"
+          placeholder="Add a new task..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="New task input"
+        >
+        <select id="task-priority" class="task-priority-select" aria-label="Task priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <button id="task-add-btn" class="task-add-btn" aria-label="Add task">+</button>
+      </div>
+      <ul class="task-list" id="task-list" role="list" aria-label="Task list">
+        <!-- Tasks rendered dynamically by app.js -->
+      </ul>
+      <!-- Task card footer (P4-5: Clear All Completed) -->
+      <div class="task-card-footer hidden" id="task-card-footer">
+        <button class="clear-completed-btn" id="clear-completed-btn" aria-label="Clear all completed tasks">Clear completed</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast notification (P4-6) -->
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
