@@ -240,13 +240,24 @@ function renderList() {
 }
 
 /* ---------- aside: focus, progress, week ---------- */
+/** Once the user has dragged tasks into their own order, the top open task is the focus; until then it is picked by priority and due date. */
 function focusCandidates() {
-  return state.tasks.filter((t) => !t.done).sort((a, b) => cmpPri(a, b) || cmpDue(a, b));
+  const open = state.tasks.filter((t) => !t.done);
+  return state.ui.arranged ? open : open.sort((a, b) => cmpPri(a, b) || cmpDue(a, b));
 }
 function renderAside() {
   const cands = focusCandidates();
   const ft = cands.length ? cands[focusSkip % cands.length] : null;
   $('#focus-title').textContent = ft ? ft.title : state.tasks.length ? 'All done. Great work!' : 'Add a task to get started';
+  $('#focus-label').textContent = !ft ? 'Main focus' : focusSkip % cands.length ? 'Up next' : state.ui.arranged ? 'Your top task - focus on this' : 'Focus now';
+  if (ft) {
+    const pri = effPri(ft), due = dueLabel(ft);
+    $('#focus-meta').innerHTML = `<span class="pill p-${pri}">${PRI_LABEL[pri]}</span>` +
+      (ft.project ? `<span class="hm">${esc(ft.project)}</span>` : '') +
+      (ft.due ? `<span class="hm">${icon('cal')}${esc(due.text)}</span>` : '');
+  } else $('#focus-meta').innerHTML = '';
+  $('#hero').classList.toggle('empty', !ft);
+  $('#focus-done').hidden = !ft;
   $('#focus-skip').disabled = cands.length < 2;
 
   const today = todayStr();
@@ -521,6 +532,7 @@ listEl.addEventListener('drop', (e) => {
   if (!src || !dst || src === dst) return;
   state.tasks.splice(state.tasks.indexOf(src), 1);
   state.tasks.splice(state.tasks.indexOf(dst) + (after ? 1 : 0), 0, src);
+  state.ui.arranged = true; focusSkip = 0;
   commit();
 });
 listEl.addEventListener('keydown', (e) => {
@@ -795,6 +807,10 @@ $('#chip-proj').addEventListener('click', (e) => {
 $('#timer-toggle').addEventListener('click', toggleTimer);
 $('#timer-reset').addEventListener('click', () => { stopTimer(); timer.left = timer.total; paintTimer(); });
 $('#focus-skip').addEventListener('click', () => { focusSkip++; renderAside(); });
+$('#focus-done').addEventListener('click', () => {
+  const cands = focusCandidates();
+  if (cands.length) { const t = cands[focusSkip % cands.length]; focusSkip = 0; toggleDone(t.id); }
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;

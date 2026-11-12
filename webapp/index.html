@@ -58,6 +58,23 @@
       </div>
     </div>
 
+    <section class="card focus" id="hero" aria-label="Main focus">
+      <div class="hero-main">
+        <div class="lbl" id="focus-label">Focus now</div>
+        <h2 id="focus-title">Nothing to focus on</h2>
+        <div class="hero-meta" id="focus-meta"></div>
+      </div>
+      <div class="hero-side">
+        <div class="timer" id="timer" role="timer" aria-live="off">25:00</div>
+        <div class="row">
+          <button class="fb w" id="timer-toggle" type="button"></button>
+          <button class="fb g icon" id="timer-reset" type="button" aria-label="Reset timer" title="Reset timer"><svg class="i"><use href="#i-reset"/></svg></button>
+          <button class="fb g icon" id="focus-done" type="button" aria-label="Mark focus task as done" title="Mark done"><svg class="i"><use href="#i-check"/></svg></button>
+          <button class="fb g icon" id="focus-skip" type="button" aria-label="Next focus task" title="Next task"><svg class="i"><use href="#i-skip"/></svg></button>
+        </div>
+      </div>
+    </section>
+
     <form class="card add" id="composer" autocomplete="off">
       <span class="add-plus"><svg class="i"><use href="#i-plus"/></svg></span>
       <input id="task-input" placeholder="Add a task...  try &quot;Review report tomorrow !high #Work&quot;" aria-label="New task">
@@ -85,16 +102,6 @@
   </main>
 
   <aside>
-    <section class="card focus" aria-label="Main focus">
-      <div class="lbl">Main focus</div>
-      <h3 id="focus-title">Nothing to focus on</h3>
-      <div class="timer" id="timer" role="timer" aria-live="off">25:00</div>
-      <div class="row">
-        <button class="fb w" id="timer-toggle" type="button"></button>
-        <button class="fb g icon" id="timer-reset" type="button" aria-label="Reset timer" title="Reset timer"><svg class="i"><use href="#i-reset"/></svg></button>
-        <button class="fb g icon" id="focus-skip" type="button" aria-label="Next focus task" title="Next task"><svg class="i"><use href="#i-skip"/></svg></button>
-      </div>
-    </section>
     <section class="card stat" aria-label="Today's progress">
       <div class="ring" id="ring"><i id="ring-pct">0%</i></div>
       <div><b>Today's progress</b><div class="muted" id="stat-text"></div><div class="muted streak" id="streak"></div></div>
