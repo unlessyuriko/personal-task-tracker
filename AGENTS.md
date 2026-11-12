@@ -7,6 +7,12 @@ This repository contains a browser extension called Personal Focus Board. It ove
 - a main-focus display driven by the current task list
 - optional wallpaper and name settings stored in extension storage
 
+## Web app (webapp/)
+- Lavo, a lavender web-app version of the tracker: webapp/index.html, styles.css, app.js (plain HTML/CSS/JS, no build, no login).
+- Data is stored in the browser's localStorage under the key `lavo.v1`; it can import the old extension's JSON backups.
+- Must be served over http(s); run `node serve.js` and open http://localhost:5173 (opening the file directly can block storage).
+- Check with: `node --check webapp/app.js`
+
 ## Important project facts
 - The extension source lives in the extension/ folder.
 - The extension is built with plain HTML, CSS, and JavaScript; there is no build step.

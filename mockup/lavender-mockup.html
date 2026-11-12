@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lavender Mockup</title>
+<style>
+:root{
+  --bg:#F6F4FF; --surface:#FFFFFF; --lav-50:#F3F0FF; --lav-100:#EAE5FF; --lav-200:#D9D0FF; --lav-300:#C2B4FB;
+  --primary:#6B58D6; --primary-hover:#5944C4; --primary-soft:#EEEAFF;
+  --text:#2A2447; --muted:#6B6590; --line:#E8E4F7;
+  --high:#D9455F; --high-bg:#FFE8EC; --med:#B7791F; --med-bg:#FFF2D9; --low:#2F9E77; --low-bg:#DFF5EC;
+  --shadow:0 1px 2px rgba(60,40,140,.06),0 8px 24px rgba(60,40,140,.07);
+}
+@media (prefers-color-scheme:dark){:root{color-scheme:light}}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 "Inter",system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:radial-gradient(900px 400px at 85% -10%,#E6DEFF 0%,transparent 60%),radial-gradient(700px 400px at -10% 110%,#EFE9FF 0%,transparent 60%)}
+html,body{height:100%;overflow:hidden}
+.app{display:grid;grid-template-columns:230px 1fr 310px;gap:20px;max-width:1280px;margin:0 auto;padding:20px;height:100vh}
+main{min-height:0}
+.group{flex:1;min-height:0;overflow:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+/* sidebar */
+.side{padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:20px;height:calc(100vh - 40px)}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 16px;font-weight:700;font-size:16px}
+.logo{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#9B8AF5,#6B58D6);display:grid;place-items:center;color:#fff;font-size:15px}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--muted);font-weight:500;cursor:pointer}
+.nav:hover{background:var(--lav-50);color:var(--text)}
+.nav.active{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .n{margin-left:auto;font-size:12px;background:var(--lav-100);color:var(--primary);padding:1px 8px;border-radius:99px}
+.sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8D87AD;padding:16px 12px 6px;font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--lav-50)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--lav-300);display:grid;place-items:center;font-weight:700;color:#3b2f8a}
+/* main */
+main{display:flex;flex-direction:column;gap:16px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;padding:6px 4px}
+.head h1{font-size:26px;letter-spacing:-.02em}
+.head p{color:var(--muted)}
+.kbd{font-size:12px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 6px;color:var(--muted)}
+.add{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.add input{flex:1;border:0;outline:0;font:inherit;background:transparent;color:var(--text);padding:6px}
+.add input::placeholder{color:#9A94B8}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:500;cursor:pointer}
+.btn{background:var(--primary);color:#fff;border:0;border-radius:11px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(107,88,214,.3)}
+.btn:hover{background:var(--primary-hover)}
+.tabs{display:flex;gap:6px;padding:0 4px}
+.tab{padding:6px 14px;border-radius:99px;font-weight:500;color:var(--muted);cursor:pointer}
+.tab.on{background:var(--text);color:#fff}
+.group{padding:8px 8px 10px}
+.gt{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.gt b{color:var(--text)}
+.task{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:grab}
+.task:hover{background:var(--lav-50)}
+.task:hover .grip{opacity:1}
+.grip{opacity:0;color:#B3ADD0;letter-spacing:-2px;font-size:14px}
+.cb{width:21px;height:21px;border-radius:50%;border:2px solid var(--lav-300);flex:none;display:grid;place-items:center;color:#fff;font-size:12px}
+.cb.h{border-color:var(--high)}.cb.m{border-color:#E0A23A}.cb.l{border-color:var(--low)}
+.cb.done{background:var(--primary);border-color:var(--primary)}
+.tt{flex:1}
+.tt small{display:block;color:var(--muted);font-size:12.5px}
+.done .tt, .task.d .tt span{color:#9A94B8;text-decoration:line-through}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px}
+.p-h{background:var(--high-bg);color:var(--high)}.p-m{background:var(--med-bg);color:var(--med)}.p-l{background:var(--low-bg);color:var(--low)}
+.due{font-size:12.5px;color:var(--muted);display:flex;gap:5px;align-items:center}
+.due.over{color:var(--high);font-weight:600}
+.tag{font-size:12px;color:var(--primary);background:var(--primary-soft);padding:2px 8px;border-radius:6px;font-weight:500}
+/* right */
+aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:20px;align-self:start}
+.focus{padding:20px;background:linear-gradient(160deg,#7C69E6 0%,#6250CE 100%);color:#fff;border:0;position:relative;overflow:hidden}
+.focus:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.12)}
+.focus .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;font-weight:600}
+.focus h3{font-size:19px;margin:6px 0 16px;line-height:1.3;position:relative}
+.timer{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.focus .row{display:flex;gap:8px;margin-top:14px}
+.fb{flex:1;border:0;border-radius:10px;padding:9px;font:inherit;font-weight:600;cursor:pointer}
+.fb.w{background:#fff;color:var(--primary)}.fb.g{background:rgba(255,255,255,.2);color:#fff}
+.stat{padding:18px;display:flex;gap:16px;align-items:center}
+.ring{--p:62;width:84px;height:84px;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--p)*1%),var(--lav-100) 0);display:grid;place-items:center;flex:none}
+.ring i{width:64px;height:64px;border-radius:50%;background:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:18px}
+.week{padding:18px}
+.week h4{font-size:14px;margin-bottom:12px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:70px}
+.bars div{flex:1;border-radius:6px;background:var(--lav-200)}
+.bars div.t{background:var(--primary)}
+.bars+.bars{height:auto;margin-top:6px;color:var(--muted);font-size:11px;text-align:center}
+@media(max-width:1020px){html,body{overflow:auto;height:auto}.app{grid-template-columns:1fr;height:auto}.side{position:static;height:auto}aside{position:static}.group{overflow:visible}}
+.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}.nav .i{width:19px;height:19px}.chip .i{width:15px;height:15px}.fb .i{width:14px;height:14px;vertical-align:-2px}.due .i{width:14px;height:14px;vertical-align:-2px}.grip .i{width:16px;height:16px}.cb .i{width:13px;height:13px}.gt .i{width:10px;height:10px}
+.task,.thead{display:grid;grid-template-columns:16px 22px minmax(0,1fr) 84px 112px 76px;column-gap:10px;align-items:center}
+.task{padding:10px 12px}
+.thead{padding:6px 12px 8px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#8D87AD;font-weight:600;position:sticky;top:0;background:#fff;z-index:1}
+.c-pri{text-align:center}.c-proj,.c-pri{display:flex;align-items:center}.c-pri{justify-content:center}.thead .c-pri{display:block}
+.task .due{white-space:nowrap}.task .tt span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{min-width:64px;text-align:center}</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 3l2.2 6.3L21 12l-6.8 2.7L12 21l-2.2-6.3L3 12l6.8-2.7z" fill="currentColor"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13l2.5-7.5A2 2 0 017.4 4h9.2a2 2 0 011.9 1.5L21 13v5a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="currentColor" opacity=".25"/><path d="M3 13h5l1 2.5h6l1-2.5h5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="currentColor" opacity=".25"/><rect x="3.5" y="5" width="17" height="15.5" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4.5" fill="currentColor"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+<symbol id="i-disk" viewBox="0 0 24 24"><path d="M5 3.5h11l3.5 3.5v11a2 2 0 01-2 2H5a2 2 0 01-2-2v-12.5a2 2 0 012-2z" fill="currentColor" opacity=".25"/><path d="M5 3.5h11l3.5 3.5v11a2 2 0 01-2 2H5a2 2 0 01-2-2v-12.5a2 2 0 012-2zM7.5 3.5v5h7v-5M7.5 20.5v-6h9v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none"/></symbol>
+<symbol id="i-hash" viewBox="0 0 24 24"><path d="M9 4L7 20M17 4l-2 16M4.5 9h16M3.5 15h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2.5c.5 3.5 5.5 6 5.5 11.2a5.5 5.5 0 01-11 0c0-2 1-3.4 2-4.4.2 1.4.9 2.2 1.7 2.5C10 8.5 10.5 5 12 2.5z" fill="currentColor"/></symbol>
+<symbol id="i-grip" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></g></symbol>
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+</defs></svg>
+<div class="app">
+  <nav class="card side">
+    <div class="brand"><div class="logo"><svg class="i " aria-hidden="true"><use href="#i-logo"/></svg></div>Lavo</div>
+    <div class="nav"><svg class="i " aria-hidden="true"><use href="#i-plus"/></svg> Quick add <span class="kbd" style="margin-left:auto">Q</span></div>
+    <div class="nav"><svg class="i " aria-hidden="true"><use href="#i-inbox"/></svg> Inbox <span class="n">3</span></div>
+    <div class="nav active"><svg class="i " aria-hidden="true"><use href="#i-sun"/></svg> Today <span class="n">5</span></div>
+    <div class="nav"><svg class="i " aria-hidden="true"><use href="#i-cal"/></svg> Upcoming</div>
+    <div class="nav"><svg class="i " aria-hidden="true"><use href="#i-target"/></svg> Focus</div>
+    <div class="nav"><svg class="i " aria-hidden="true"><use href="#i-check"/></svg> Completed</div>
+    <div class="sec">Projects</div>
+    <div class="nav"><span class="dot" style="background:#8B7CF6"></span>Work</div>
+    <div class="nav"><span class="dot" style="background:#F08BB4"></span>Personal</div>
+    <div class="nav"><span class="dot" style="background:#5CC8A8"></span>Learning</div>
+    <div class="me"><div class="av">M</div><div><b style="font-size:13.5px">May Thu Han</b><div style="font-size:12px;color:var(--low)"><svg class="i " aria-hidden="true"><use href="#i-disk"/></svg> Saved in this browser</div></div></div>
+  </nav>
+
+  <main>
+    <div class="head">
+      <div><p>Thursday, 12 November</p><h1>Good morning, May</h1></div>
+      <span class="kbd">Press <b>Q</b> to add a task</span>
+    </div>
+
+    <div class="card add">
+      <span style="color:var(--primary);font-size:20px;display:flex"><svg class="i " aria-hidden="true"><use href="#i-plus"/></svg></span>
+      <input placeholder="Add a task…  try “Review report tomorrow !high #Work”">
+      <span class="chip"><svg class="i " aria-hidden="true"><use href="#i-cal"/></svg> Date</span><span class="chip"><svg class="i " aria-hidden="true"><use href="#i-flag"/></svg> Priority</span><span class="chip"><svg class="i " aria-hidden="true"><use href="#i-hash"/></svg> Project</span>
+      <button class="btn">Add</button>
+    </div>
+
+    <div class="tabs"><span class="tab on">Today</span><span class="tab">Upcoming</span><span class="tab">By priority</span><span class="tab">All</span></div>
+
+    <div class="card group">
+      <div class="thead"><span></span><span></span><span>Task</span><span>Project</span><span>Due</span><span class="c-pri">Priority</span></div>
+      <div class="gt"><span style="color:var(--high);display:inline-flex"><svg class="i" aria-hidden="true"><use href="#i-dot"/></svg></span> <b>Overdue</b> &middot; 1</div>
+      <div class="task "><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb h"></span><div class="tt"><span>Send monthly report to manager</span></div><div class="c-proj"><span class="tag" style="">Work</span></div><div class="due over"><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg> 2d overdue</div><div class="c-pri"><span class="pill p-h">High</span></div></div>
+      <div class="gt" style="margin-top:6px"><span style="color:var(--primary);display:inline-flex"><svg class="i" aria-hidden="true"><use href="#i-dot"/></svg></span> <b>Today</b> &middot; 3</div>
+      <div class="task "><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb h"></span><div class="tt"><span>Prepare slides for Friday review</span><small>2 of 5 subtasks</small></div><div class="c-proj"><span class="tag" style="">Work</span></div><div class="due "><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg> Today</div><div class="c-pri"><span class="pill p-h">High</span></div></div>
+      <div class="task "><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb m"></span><div class="tt"><span>Book dentist appointment</span></div><div class="c-proj"><span class="tag" style="color:#B0396F;background:#FFE9F2">Personal</span></div><div class="due "><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg> Today</div><div class="c-pri"><span class="pill p-m">Medium</span></div></div>
+      <div class="task "><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb l"></span><div class="tt"><span>Read chapter 4 &mdash; Design Systems</span></div><div class="c-proj"><span class="tag" style="color:#1F8A6A;background:#E0F7EF">Learning</span></div><div class="due "><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg> Today</div><div class="c-pri"><span class="pill p-l">Low</span></div></div>
+      <div class="gt" style="margin-top:6px"><span style="color:#9A94B8;display:inline-flex"><svg class="i" aria-hidden="true"><use href="#i-dot"/></svg></span> <b>Completed</b> &middot; 2</div>
+      <div class="task d"><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb done"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><div class="tt"><span>Reply to client emails</span></div><div class="c-proj"><span class="tag" style="">Work</span></div><div class="due ">Done 9:12 AM</div><div class="c-pri"></div></div>
+      <div class="task d"><span class="grip"><svg class="i" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="cb done"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><div class="tt"><span>Water the plants</span></div><div class="c-proj"><span class="tag" style="color:#B0396F;background:#FFE9F2">Personal</span></div><div class="due ">Done 8:30 AM</div><div class="c-pri"></div></div>
+    </div>
+  </main>
+
+  <aside>
+    <div class="card focus">
+      <div class="lbl">Main focus</div>
+      <h3>Prepare slides for Friday review</h3>
+      <div class="timer">25:00</div>
+      <div class="row"><button class="fb w"><svg class="i " aria-hidden="true"><use href="#i-play"/></svg> Start focus</button><button class="fb g">Skip</button></div>
+    </div>
+    <div class="card stat">
+      <div class="ring"><i>62%</i></div>
+      <div><b>Today's progress</b><div style="color:var(--muted);font-size:13.5px">5 of 8 tasks done.<br><svg class="i " aria-hidden="true"><use href="#i-flame"/></svg> 6-day streak</div></div>
+    </div>
+    <div class="card week">
+      <h4>This week</h4>
+      <div class="bars"><div style="height:45%"></div><div style="height:70%"></div><div style="height:55%"></div><div class="t" style="height:90%"></div><div style="height:20%;opacity:.5"></div><div style="height:10%;opacity:.4"></div><div style="height:10%;opacity:.4"></div></div>
+      <div class="bars"><span style="flex:1">M</span><span style="flex:1">T</span><span style="flex:1">W</span><span style="flex:1;color:var(--primary);font-weight:700">T</span><span style="flex:1">F</span><span style="flex:1">S</span><span style="flex:1">S</span></div>
+    </div>
+  </aside>
+</div>
+
+</body>
+</html>
